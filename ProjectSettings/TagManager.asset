@@ -31,9 +31,9 @@ TagManager:
   - Check4
   - Check5
   - 
-  - 
-  - 
-  - 
+  - Wall
+  - Trapdoor
+  - Player
   - 
   - Background
   - PlacementCheck

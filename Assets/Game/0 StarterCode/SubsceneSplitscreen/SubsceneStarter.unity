@@ -542,6 +542,7 @@ MonoBehaviour:
     y: 0
     width: 0.5
     height: 0.5
+  subsceneOffset: {x: 100, y: 0, z: 0}
 --- !u!4 &1609695534
 Transform:
   m_ObjectHideFlags: 0
@@ -731,6 +732,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1340217340899204802, guid: a1ba59e2136fabc42aa131726cd96a7a, type: 3}
+      propertyPath: m_MaxPlayerCount
+      value: 4
+      objectReference: {fileID: 0}
     - target: {fileID: 7095362626626749567, guid: a1ba59e2136fabc42aa131726cd96a7a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -903,6 +908,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   subscenes: []
+  timer: 30
+  trapdoorCount: 30
 --- !u!1 &2083707249
 GameObject:
   m_ObjectHideFlags: 0

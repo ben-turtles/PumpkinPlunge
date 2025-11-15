@@ -10,6 +10,9 @@ namespace Starter.SubsceneSplitscreen {
     /// </summary>
     public class StarterGameManager : MonoBehaviour {
         [HideInInspector]public List<StarterSubmanager> subscenes = new();
+
+        [Header("Game Parameters")]
+        public float timer = 30;
         
         public static StarterGameManager instance;
         private void Awake() {
