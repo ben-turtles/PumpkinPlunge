@@ -8,6 +8,11 @@ namespace Starter.SubsceneSplitscreen {
         [Header("References")]
         [SerializeField] private ButtonPanel buttonPanel;
 
+        public void SetMaterial(Material material)
+        {
+            GetComponent<MeshRenderer>().material = material;
+        }
+
         protected override void OnActionPressed(InputAction.CallbackContext context) {
             if (context.action.name == PawnAction.ButtonA) {
                 // Activate panel

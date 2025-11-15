@@ -18,8 +18,9 @@ namespace Starter.SubsceneSplitscreen {
         private static float BUTTON_PANEL_X_EXTRA = 0;
         private static float BUTTON_PANEL_Y_EXTRA = 10;
 
+        public static bool canUsePanel = false;
         private int selectedTypeIndex;
-        private TrapdoorType selectedTrapdoorType => submanager.trapdoorTypes[selectedTypeIndex];
+        private TrapdoorType selectedTrapdoorType => StarterGameManager.instance.trapdoorTypes[selectedTypeIndex];
         private Button selectedButton => buttons[selectedTrapdoorType];
         private Dictionary<TrapdoorType, Button> buttons = new();
         private bool updateIndicatorPosition;
@@ -27,16 +28,13 @@ namespace Starter.SubsceneSplitscreen {
         private Vector3 indicatorVelocity;
         void Start()
         {
-            Debug.Log(GetComponent<RectTransform>().rect);
-
             // Move panel object
-            int typeCount = submanager.trapdoorTypes.Count;
+            int typeCount = StarterGameManager.instance.trapdoorTypes.Count;
             Vector3 buttonSize = buttonPrefab.transform.localScale;
             float panelThickness = panel.transform.localScale.z;
             float panelWidth = (buttonSize.x * typeCount) + (BUTTON_PANEL_PADDING_X * (typeCount + 1));
             float panelHeight = buttonSize.z + (BUTTON_PANEL_PADDING_Y * 2) + BUTTON_PANEL_Y_EXTRA;
             float canvasHeight = GetComponent<RectTransform>().rect.height * 0.5f;
-            Debug.Log(canvasHeight);
             panel.transform.localScale = new(panelWidth + BUTTON_PANEL_X_EXTRA, panelHeight, panelThickness);
             panel.transform.localPosition = new(
                 panel.transform.localPosition.x,
@@ -47,7 +45,7 @@ namespace Starter.SubsceneSplitscreen {
             // Make buttons
             for (int i = 0; i < typeCount; i++)
             {
-                TrapdoorType type = submanager.trapdoorTypes[i];
+                TrapdoorType type = StarterGameManager.instance.trapdoorTypes[i];
                 GameObject buttonObject = Instantiate(buttonPrefab, gameObject.transform);
                 buttonObject.transform.localPosition = new(
                     (0.5f * (buttonSize.x - panelWidth)) + BUTTON_PANEL_PADDING_X + (i * (buttonSize.x + BUTTON_PANEL_PADDING_X)),
@@ -59,6 +57,7 @@ namespace Starter.SubsceneSplitscreen {
                 buttons.Add(type, button);
             }
 
+            // Move indicator
             indicator.transform.position = GetIndicatorPosition();
             indicator.SetActive(true);
         }
@@ -94,6 +93,10 @@ namespace Starter.SubsceneSplitscreen {
 
         public void MoveLeft()
         {
+            if (!canUsePanel)
+            {
+                return;
+            }
             if (selectedTypeIndex > 0)
             {
                 selectedTypeIndex -= 1;
@@ -103,7 +106,11 @@ namespace Starter.SubsceneSplitscreen {
 
         public void MoveRight()
         {
-            if (selectedTypeIndex < submanager.trapdoorTypes.Count - 1)
+            if (!canUsePanel)
+            {
+                return;
+            }
+            if (selectedTypeIndex < StarterGameManager.instance.trapdoorTypes.Count - 1)
             {
                 selectedTypeIndex += 1;
             }
@@ -112,7 +119,10 @@ namespace Starter.SubsceneSplitscreen {
 
         public void Activate()
         {
-            
+            if (!canUsePanel)
+            {
+                return;
+            }
             submanager.TryOpenTrapdoor(selectedTrapdoorType);
         }
     }

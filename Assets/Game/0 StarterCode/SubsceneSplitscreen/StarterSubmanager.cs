@@ -1,4 +1,7 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem.iOS;
 
@@ -10,32 +13,34 @@ namespace Starter.SubsceneSplitscreen {
     public class StarterSubmanager : MonoBehaviour {
         public int playerIndex { get; private set; }
         [SerializeField] List<Material> materials = new();
-
-        [Header("Subscene Parameters")]
-        [SerializeField] private int trapdoorCreateCount = 30;
-        [SerializeField] public List<TrapdoorType> trapdoorTypes;
-
+        
         [Header("References")]
         [SerializeField] private StarterPawn player;
         [SerializeField] private GameObject trapdoorPrefab;
         [SerializeField] private List<GameObject> sideWalls;
         [SerializeField] private GameObject roof;
         [SerializeField] private new GameObject camera;
+        public TextMeshProUGUI resultsText;
+        public TextMeshProUGUI earlyFinishText;
 
         private Queue<Trapdoor> trapdoors;
-        private int trapdoorsOpened => trapdoorCreateCount - trapdoors.Count;
+        private int trapdoorStartingCount;
+        private int trapdoorsOpened;
         private float trapdoorTotalHeight;
         private bool updateCameraPosition;
         private Vector3 targetCameraPosition;
         private Vector3 cameraVelocity;
+        private int finishedAt = -1;
 
         // Constants
-        private static float TRAPDOOR_SPACING = 6;
+        private static float TRAPDOOR_SPACING = 5;
         private static float ROOF_OFFSET = 0;
-        private static float CAMERA_OFFSET_Y = -2;
+        private static float CAMERA_OFFSET_Y = -5;
         private static float CAMERA_VELOCITY_Y = 10;
         private static float CAMERA_MOVE_TIME = 1f;
         private static float CAMERA_STOP_MARGIN = 0.01f;
+        private static float SCORE_ANIMATE_DELAY = 0.05f;
+        private static float SCORE_EXTRA_DELAY = 0.5f;
 
         private void Awake()
         {
@@ -60,6 +65,21 @@ namespace Starter.SubsceneSplitscreen {
             }
         }
 
+        private Vector3 GetCameraPosition()
+        {
+            return new(
+                camera.transform.position.x,
+                trapdoorTotalHeight - ((StarterGameManager.instance.trapdoorCreateCount - trapdoors.Count) * TRAPDOOR_SPACING) + CAMERA_OFFSET_Y,
+                camera.transform.position.z
+            );
+        }
+
+        private void UpdateCamera() {
+            cameraVelocity = -CAMERA_VELOCITY_Y * Vector3.up;
+            targetCameraPosition = GetCameraPosition();
+            updateCameraPosition = true;
+        }
+
         public bool TryOpenTrapdoor(TrapdoorType openType)
         {
             if (trapdoors.Count == 0)
@@ -70,37 +90,30 @@ namespace Starter.SubsceneSplitscreen {
             // Open first trapdoor if matches
             if (trapdoors.Peek().type == openType)
             {
+                trapdoorsOpened++;
                 Trapdoor opening = trapdoors.Dequeue();
                 opening.OpenLatch();
-                cameraVelocity = -CAMERA_VELOCITY_Y * Vector3.up;
-                targetCameraPosition = GetCameraPosition();
-                updateCameraPosition = true;
+                UpdateCamera();
+                if (trapdoors.Count == 0)
+                {
+                    // No more trapdoors, store time finished
+                    finishedAt = StarterGameManager.currentTime;
+                }
                 return true;
             }
             return false;
         }
 
-        private TrapdoorType PickRandomTrapdoorType()
-        {
-            return trapdoorTypes[Random.Range(0, trapdoorTypes.Count)];
-        }
-
-        private Vector3 GetCameraPosition()
-        {
-            return new(
-                camera.transform.position.x,
-                trapdoorTotalHeight - ((trapdoorsOpened + 1) * TRAPDOOR_SPACING) + CAMERA_OFFSET_Y,
-                camera.transform.position.z
-            );
-        }
-
         private void Start() {
-            player.GetComponent<MeshRenderer>().material = materials[playerIndex];
+            player.SetMaterial(materials[playerIndex]);
 
             // Create all trapdoors
             trapdoors = new();
-            trapdoorTotalHeight = trapdoorCreateCount * TRAPDOOR_SPACING;
-            for (int i = 0; i < trapdoorCreateCount; i++)
+            trapdoorsOpened = 0;
+            List<TrapdoorType> trapdoorLayout = StarterGameManager.instance.GetTrapdoorLayout();
+            trapdoorStartingCount = trapdoorLayout.Count;
+            trapdoorTotalHeight = trapdoorStartingCount * TRAPDOOR_SPACING;
+            for (int i = 0; i < trapdoorStartingCount; i++)
             {
                 GameObject trapdoorObject = Instantiate(trapdoorPrefab);
                 Trapdoor trapdoor = trapdoorObject.GetComponent<Trapdoor>();
@@ -113,8 +126,14 @@ namespace Starter.SubsceneSplitscreen {
                     trapdoorObject.transform.position.z
                 );
                 trapdoorBody.constraints = RigidbodyConstraints.None;
-                trapdoor.type = PickRandomTrapdoorType();
+                trapdoor.type = trapdoorLayout[i];
                 trapdoors.Enqueue(trapdoor);
+
+                // Have trapdoor ignore walls so it doesn't get stuck
+                foreach (GameObject sideWall in sideWalls)
+                {
+                    Physics.IgnoreCollision(trapdoor.latch.GetComponent<Collider>(), sideWall.GetComponent<Collider>());
+                }
             }
 
             // Generate walls based on trapdoors
@@ -148,10 +167,38 @@ namespace Starter.SubsceneSplitscreen {
             player.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionZ;
             camera.transform.position = GetCameraPosition();
         }
+
+        private Color GetScoreWeightColor(float weight)
+        {
+            List<Color> weightedColors = StarterGameManager.instance.resultsWeightColors;
+            return weightedColors[(int)Mathf.Floor(Mathf.Lerp(0, weightedColors.Count - 1, weight))];
+        }
+
+        private IEnumerator AnimateDropDisplay(int dropped, int extra)
+        {
+            int n = 0;
+            int trapdoorCount = trapdoorStartingCount;
+            while (n <= dropped)
+            {
+                resultsText.text = $"{n}/{trapdoorCount}";
+                resultsText.color = GetScoreWeightColor(((float)n) / trapdoorCount);
+                n += 1;
+                yield return new WaitForSeconds(SCORE_ANIMATE_DELAY);
+            }
+            if (extra > 0)
+            {
+                yield return new WaitForSeconds(SCORE_EXTRA_DELAY);
+                earlyFinishText.text = $"+{extra} Early Finish!";
+                earlyFinishText.color = GetScoreWeightColor(1);
+            }
+        }
         
-        public int GetScore() {
+        public int GetAndDisplayScore() {
             // Return player score
-            return trapdoorsOpened;
+            int rawScore = trapdoorsOpened;
+            int extra = finishedAt < 0 ? 0 : Math.Max(0, finishedAt);
+            StartCoroutine(AnimateDropDisplay(rawScore, extra));
+            return rawScore + extra;
         }
     }
 }
