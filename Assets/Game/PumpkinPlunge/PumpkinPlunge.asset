@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PumpkinPlunge
   m_EditorClassIdentifier: 
   minigameName: Pumpkin Plunge
-  thumbnail: {fileID: 0}
+  thumbnail: {fileID: 21300000, guid: 5ae9f392ebacfa24189c1245e347d21d, type: 3}
   scene:
     m_SceneAsset: {fileID: 102900000, guid: 3f63c092039f56b418f2ef136572a933, type: 3}
     m_SceneName: PumpkinPlunge

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -68,27 +69,24 @@ namespace Starter.PumpkinPlunge {
 
         private void GenerateTrapdoorLayout()
         {
-            // Selectively choose random trapdoor types
+            // Selectively choose random trapdoor types so we don't get 3 in a row
             trapdoorLayout = new();
-            List<TrapdoorType> pickOptions = null;
             int pickCounter = 0;
-            int RANDOM_LOOP_COUNT = 4;
+            TrapdoorType secondLast = null;
+            TrapdoorType firstLast = null;
             for (int i = 0; i < trapdoorCreateCount; i++)
             {
                 pickCounter++;
-                if (pickCounter >= RANDOM_LOOP_COUNT || pickOptions == null || pickOptions.Count == 0)
+                List<TrapdoorType> pickOptions = trapdoorTypes;
+                if (secondLast != null && firstLast != null && secondLast == firstLast)
                 {
-                    pickCounter = 0;
-                    pickOptions = new();
-                    foreach (TrapdoorType type in trapdoorTypes)
-                    {
-                        pickOptions.Add(type);
-                        pickOptions.Add(type);
-                    }
+                    pickOptions = trapdoorTypes.Where(type => type != firstLast).ToList();
                 }
                 int index = Random.Range(0, pickOptions.Count);
-                trapdoorLayout.Add(pickOptions[index]);
-                pickOptions.RemoveAt(index);
+                TrapdoorType pickedType = pickOptions[index];
+                trapdoorLayout.Add(pickedType);
+                secondLast = firstLast;
+                firstLast = pickedType;
             }
         }
 

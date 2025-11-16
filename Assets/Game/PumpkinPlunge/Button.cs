@@ -11,10 +11,10 @@ namespace Starter.PumpkinPlunge {
         public TrapdoorType type;
         private float PUSH_PERCENT = 0.85f;
         private float PUSH_MAX_TIME = 0.2f;
-        private float WRONG_COOLDOWN = 1.2f;
+        private float WRONG_COOLDOWN = 0.8f;
         private float responseShowDuration = 1.5f;
-        private float responseRiseStartPosition = 1f;
-        private float responseRiseEndPosition = 2f;
+        private float responseRiseStartPosition = 2f;
+        private float responseRiseEndPosition = 4f;
         private float responseColorAlphaOffset = 0.5f;
         private Color responseColorStart = Color.white;
         private Color responseColorEnd = new(1, 1, 1, 0);

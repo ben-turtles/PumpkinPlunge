@@ -11,11 +11,7 @@ namespace Starter.PumpkinPlunge {
 
         public new Rigidbody rigidbody => pumpkin.GetComponent<Rigidbody>();
         public new Collider collider => pumpkin.GetComponent<Collider>();
-        private Vector3 pumpkinOffset;
-        private float density = 500f;
-        private float submerged = 1f;
-        private float dragC = 0.5f;
-        public bool inWater = false;
+        public Vector3 pumpkinOffset;
 
         void Start()
         {
@@ -28,27 +24,9 @@ namespace Starter.PumpkinPlunge {
             pumpkin.GetComponent<MeshRenderer>().material = material;
         }
 
-        public void SetFocusPosition(Vector3 focus)
-        {
-            transform.position = focus;
-        }
-
         public Vector3 GetFocusPosition()
         {
             return pumpkin.transform.position;
-        }
-
-        void FixedUpdate()
-        {
-            if (inWater)
-            {
-                // Rigidbody body = GetComponent<Rigidbody>();
-                // float m = TankWater.density * Physics.gravity.magnitude * submerged;
-                // Debug.Log("IN WATER!" + m);
-                // Vector3 buoyantForce = Vector3.up * m;
-                // body.AddForce(buoyantForce, ForceMode.Force);
-                // body.AddForce(-body.velocity * dragC, ForceMode.Force);
-            }
         }
 
         protected override void OnActionPressed(InputAction.CallbackContext context) {

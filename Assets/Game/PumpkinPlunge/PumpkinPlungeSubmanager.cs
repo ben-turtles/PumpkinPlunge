@@ -70,7 +70,6 @@ namespace Starter.PumpkinPlunge {
                 }
                 else if (cameraDidEndDrop)
                 {
-                    Debug.Log("CAMERA END!!!!!!!!!!!");
                     if (cameraEndFocusDelayTimer > 0)
                     {
                         cameraEndFocusDelayTimer -= Time.deltaTime;
@@ -205,12 +204,13 @@ namespace Starter.PumpkinPlunge {
 
             // Position player + camera by first trapdoor
             Trapdoor firstTrapdoor = trapdoors.Peek();
-            player.transform.position = new(
+            player.transform.position = new Vector3(
                 firstTrapdoor.latch.transform.position.x,
                 firstTrapdoor.transform.position.y + (firstTrapdoor.latch.transform.localScale.y * 0.5f)
                 + (player.transform.localScale.y * 0.5f),
                 firstTrapdoor.transform.position.z
             );
+            player.pumpkin.transform.position = player.transform.position;
             player.rigidbody.constraints = RigidbodyConstraints.None;
 
             // Move camera to start
