@@ -26,7 +26,7 @@ RenderSettings:
   m_AmbientIntensity: 1
   m_AmbientMode: 0
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: f932edb35da47fe41bfaaf3c217943b6, type: 2}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -433,7 +433,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 200, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &698990011
 MonoBehaviour:
@@ -457,8 +457,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 60
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b2e3e9730a5e3bf4ebf1f86234044ddc, type: 2}
-  m_sharedMaterial: {fileID: -2695461030415181312, guid: b2e3e9730a5e3bf4ebf1f86234044ddc, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: d1e1b2c06e83b2e4fa8710c222b6a7e6, type: 2}
+  m_sharedMaterial: {fileID: 1791673027950037224, guid: 7bcf0141cb0489b4db49308980ae95d6, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -482,10 +482,10 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 72
-  m_fontSizeBase: 36
+  m_fontSize: 80
+  m_fontSizeBase: 80
   m_fontWeight: 400
-  m_enableAutoSizing: 1
+  m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
@@ -521,7 +521,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &698990012
@@ -678,7 +678,7 @@ MonoBehaviour:
     y: 0
     width: 0.5
     height: 0.5
-  subsceneOffset: {x: 100, y: 0, z: 0}
+  subsceneOffset: {x: 200, y: 0, z: 0}
 --- !u!4 &1609695534
 Transform:
   m_ObjectHideFlags: 0
@@ -732,7 +732,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1656555967
 RectTransform:
   m_ObjectHideFlags: 0
@@ -751,7 +751,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 125, y: 125}
+  m_SizeDelta: {x: 150, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1656555968
 MonoBehaviour:
@@ -1120,13 +1120,34 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   subscenes: []
-  countdownTimer: 3
   timer: 30
+  timerWarning: 5
+  timerWarningColor: {r: 1, g: 0.16325504, b: 0.1415093, a: 1}
   trapdoorCreateCount: 30
   trapdoorTypes:
   - {fileID: 11400000, guid: fdcced520288c2345bbc1d0d7ad0b9c2, type: 2}
   - {fileID: 11400000, guid: 6862b0988822ec740b5f5cd2ad505e18, type: 2}
   - {fileID: 11400000, guid: b78aea03f494f294984b42c7eb8c6764, type: 2}
+  resultsWeightColors:
+  - {r: 1, g: 0, b: 0, a: 1}
+  - {r: 1, g: 0.40188688, b: 0, a: 1}
+  - {r: 1, g: 0.82171315, b: 0, a: 1}
+  - {r: 0.7391119, g: 1, b: 0, a: 1}
+  - {r: 0, g: 1, b: 0.2569499, a: 1}
+  countdownMessages:
+  - READY!
+  - SET!
+  - PLUNGE!
+  countdownColorStart: {r: 1, g: 1, b: 1, a: 1}
+  countdownColorEnd: {r: 1, g: 1, b: 1, a: 0}
+  countdownStartFontSize: 100
+  countdownEndFontSize: 300
+  countdownMessageDuration: 1.5
+  countdownColorAlphaOffset: 0.5
+  gameCountdownStartDelay: 1
+  gameCountdownCompleteDelay: 0.2
+  resultsStartDelay: 2
+  resultsFinishDelay: 6.5
   countdownText: {fileID: 7643856841261632146}
   timerFrame: {fileID: 1656555966}
   timerText: {fileID: 698990011}
@@ -1234,8 +1255,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: b2e3e9730a5e3bf4ebf1f86234044ddc, type: 2}
-  m_sharedMaterial: {fileID: -2695461030415181312, guid: b2e3e9730a5e3bf4ebf1f86234044ddc, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: d1e1b2c06e83b2e4fa8710c222b6a7e6, type: 2}
+  m_sharedMaterial: {fileID: 1791673027950037224, guid: d1e1b2c06e83b2e4fa8710c222b6a7e6, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

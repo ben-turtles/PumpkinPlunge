@@ -11,6 +11,7 @@ namespace Starter.SubsceneSplitscreen {
         public GameObject latch;
         public GameObject indicator;
         public GameObject indicatorSymbol;
+        public GameObject bar;
 
         // Constants
         private static float LATCH_ROTATION = 90;
@@ -26,9 +27,11 @@ namespace Starter.SubsceneSplitscreen {
         {
             latch.GetComponent<MeshRenderer>().material = type.material;
             indicator.GetComponent<MeshRenderer>().material = type.material;
+            bar.GetComponent<MeshRenderer>().material = type.material;
             SpriteRenderer symbolRenderer = indicatorSymbol.GetComponent<SpriteRenderer>();
             symbolRenderer.sprite = type.symbol;
             symbolRenderer.color = type.symbolColor;
+            indicatorSymbol.transform.localPosition += new Vector3(0, 0, type.symbolOffset);
         }
 
         public void OpenLatch()

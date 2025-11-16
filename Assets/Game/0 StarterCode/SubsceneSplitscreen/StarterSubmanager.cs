@@ -13,10 +13,9 @@ namespace Starter.SubsceneSplitscreen {
     /// </summary>
     public class StarterSubmanager : MonoBehaviour {
         public int playerIndex { get; private set; }
-        [SerializeField] List<Material> materials = new();
         
         [Header("References")]
-        [SerializeField] private StarterPawn player;
+        [SerializeField] public StarterPawn player;
         [SerializeField] private GameObject trapdoorPrefab;
         [SerializeField] private List<GameObject> sideWalls;
         [SerializeField] private GameObject roof;
@@ -24,17 +23,18 @@ namespace Starter.SubsceneSplitscreen {
         public TextMeshProUGUI resultsText;
         public TextMeshProUGUI earlyFinishText;
         [Header("Parameters")]
+        [SerializeField] List<Material> materials = new();
         [SerializeField] private float trapdoorSpacing = 5;
         [SerializeField] private float roofPositionOffset = 0;
-        [SerializeField] private float cameraOffsetY = -3f;
+        [SerializeField] private float cameraOffsetY = -5;
         [SerializeField] private float cameraMoveVelocity = 10;
         [SerializeField] private float cameraMoveTime = 1f;
         [SerializeField] private float scoreResultsIncreaseDelay = 0.05f;
-        [SerializeField] private float scoreResultsStartDelay = 0.5f;
+        [SerializeField] private float scoreResultsExtraDelay = 0.5f;
         [SerializeField] private float cameraStartZoom = 3;
-        [SerializeField] private float cameraStartZoomOutTime = 2.3f;
-        [SerializeField] private float cameraEndFocusZoom = 6;
-        [SerializeField] private float cameraEndFocusHeightOffset = 0.25f;
+        [SerializeField] private float cameraEndFocusDelay = 0.5f;
+        [SerializeField] private float cameraFocusZoom = 6;
+        [SerializeField] private float cameraFocusHeightOffset = 0.25f;
 
         private Queue<Trapdoor> trapdoors;
         private int trapdoorStartingCount;
@@ -48,6 +48,11 @@ namespace Starter.SubsceneSplitscreen {
         private bool cameraAtEnd;
         private bool cameraDidEndDrop;
         private bool cameraStartedEndDrop;
+        private float cameraEndFocusDelayTimer;
+        private Vector3 cameraStartEndPos;
+        private Quaternion cameraStartEndRotation;
+        private Vector3 cameraStartPos;
+        private Quaternion cameraStartRotation;
 
         private void Awake()
         {
@@ -62,12 +67,19 @@ namespace Starter.SubsceneSplitscreen {
                 if (!cameraDidEndDrop && !cameraStartedEndDrop)
                 {
                     cameraStartedEndDrop = true;
+                    cameraEndFocusDelayTimer = cameraEndFocusDelay;
                     targetCameraPosition = GetCameraPosition(trapdoorsOpened);
                 }
                 else if (cameraDidEndDrop)
                 {
-                    targetCameraPosition = player.transform.position +
-                        new Vector3(0, cameraEndFocusHeightOffset, -cameraEndFocusZoom);
+                    Debug.Log("CAMERA END!!!!!!!!!!!");
+                    if (cameraEndFocusDelayTimer > 0)
+                    {
+                        cameraEndFocusDelayTimer -= Time.deltaTime;
+                        return;
+                    }
+                    targetCameraPosition = player.GetFocusPosition() +
+                        new Vector3(0, cameraFocusHeightOffset, -cameraFocusZoom);
                 }
             }
             if (cameraAtEnd || updateCameraPosition)
@@ -151,15 +163,15 @@ namespace Starter.SubsceneSplitscreen {
             trapdoorTotalHeight = trapdoorStartingCount * trapdoorSpacing;
             for (int i = 0; i < trapdoorStartingCount; i++)
             {
-                GameObject trapdoorObject = Instantiate(trapdoorPrefab);
+                GameObject trapdoorObject = Instantiate(trapdoorPrefab, transform);
                 Trapdoor trapdoor = trapdoorObject.GetComponent<Trapdoor>();
                 Rigidbody trapdoorBody = trapdoor.latch.GetComponent<Rigidbody>();
                 trapdoorBody.constraints = RigidbodyConstraints.FreezePosition;
                 float atHeight = trapdoorTotalHeight - ((i + 1) * trapdoorSpacing);
-                trapdoorObject.transform.position = new(
-                    trapdoorObject.transform.position.x,
+                trapdoorObject.transform.localPosition = new(
+                    trapdoorObject.transform.localPosition.x,
                     atHeight,
-                    trapdoorObject.transform.position.z
+                    trapdoorObject.transform.localPosition.z
                 );
                 trapdoorBody.constraints = RigidbodyConstraints.None;
                 trapdoor.type = trapdoorLayout[i];
@@ -188,7 +200,8 @@ namespace Starter.SubsceneSplitscreen {
             }
             roof.transform.position = new(
                 roof.transform.position.x,
-                trapdoorTotalHeight + roofPositionOffset + (roof.transform.localScale.y * 0.5f),
+                trapdoorTotalHeight + roofPositionOffset +
+                (Mathf.Abs(Vector3.Dot(roof.transform.localScale, roof.transform.up)) * 0.5f),
                 roof.transform.position.z
             );
 
@@ -200,37 +213,37 @@ namespace Starter.SubsceneSplitscreen {
                 + (player.transform.localScale.y * 0.5f),
                 firstTrapdoor.transform.position.z
             );
-            cameraStartHeight = player.transform.position.y;
-            player.GetComponent<Rigidbody>().constraints = RigidbodyConstraints.FreezePositionZ;
-            StartCoroutine(CameraStartRoutine());
-        }
+            player.rigidbody.constraints = RigidbodyConstraints.FreezePositionZ;
 
-        private float CameraStartEasing(float t)
-        {
-            return Mathf.Pow(t, 2);  
-        }
-
-        private IEnumerator CameraStartRoutine()
-        {
-            Vector3 endPos = GetCameraPosition();
-            Quaternion endRotation = camera.transform.rotation;
-            Vector3 startPos = player.transform.position + new Vector3(0, 0, -cameraStartZoom);
-            camera.transform.position = startPos;
+            // Move camera to start
+            Vector3 focus = player.transform.position;
+            cameraStartHeight = focus.y;
+            cameraStartEndPos = GetCameraPosition();
+            cameraStartEndRotation = camera.transform.rotation;
+            camera.transform.position = focus + new Vector3(0, 0, -cameraStartZoom);
             camera.transform.LookAt(player.transform);
-            Quaternion startRotation = camera.transform.rotation;
-            yield return new WaitForSeconds(1f);
-            float timer = 0f;
-            while (timer < cameraStartZoomOutTime)
+            cameraStartPos = camera.transform.position;
+            cameraStartRotation = camera.transform.rotation;
+            UpdateStartCameraAlpha();
+        }
+        
+        public void UpdateStartCameraAlpha()
+        {
+            if (cameraAtEnd)
             {
-                float alpha = CameraStartEasing(timer / cameraStartZoomOutTime);
-                camera.transform.position = Vector3.Lerp(startPos, endPos, alpha);
-                camera.transform.rotation = Quaternion.Lerp(startRotation, endRotation, alpha);
-                yield return null;
-                timer += Time.deltaTime;
+                return;
             }
-            camera.transform.position = endPos;
-            camera.transform.rotation = endRotation;
-            player.buttonPanel.Show();
+            float alpha = StarterGameManager.startCameraAlpha;
+            camera.transform.position = Vector3.Lerp(cameraStartPos, cameraStartEndPos, alpha);
+            camera.transform.rotation = Quaternion.Lerp(cameraStartRotation, cameraStartEndRotation, alpha);
+        }
+
+        public void UpdatePanel()
+        {
+            if (StarterGameManager.gameStarted && !cameraAtEnd)
+            {
+                player.buttonPanel.Show();
+            }
         }
 
         public void TriggerEnd()
@@ -239,6 +252,7 @@ namespace Starter.SubsceneSplitscreen {
             cameraAtEnd = true;
             cameraStartedEndDrop = true;
             cameraDidEndDrop = true;
+            cameraEndFocusDelayTimer = 0f;
         }
 
         private Color GetScoreWeightColor(float weight)
@@ -271,8 +285,8 @@ namespace Starter.SubsceneSplitscreen {
             }
             if (extra > 0)
             {
-                yield return new WaitForSeconds(scoreResultsStartDelay);
-                earlyFinishText.text = $"+{extra} Early Finish!";
+                yield return new WaitForSeconds(scoreResultsExtraDelay);
+                earlyFinishText.text = $"+{extra} Finish Time!";
                 earlyFinishText.color = GetScoreWeightColor(1);
             }
         }

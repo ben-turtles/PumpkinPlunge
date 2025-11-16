@@ -33,6 +33,7 @@ namespace Starter.SubsceneSplitscreen {
         public float gameCountdownCompleteDelay = 0.2f;
         public float resultsStartDelay = 2f;
         public float resultsFinishDelay = 6f;
+        [SerializeField] private float cameraStartZoomOutTime = 2.3f;
 
         [Header("References")]
         [SerializeField] private TextMeshProUGUI countdownText;
@@ -44,6 +45,8 @@ namespace Starter.SubsceneSplitscreen {
         public static StarterGameManager instance;
         public static int currentTime;
         private List<TrapdoorType> trapdoorLayout;
+        public static float startCameraAlpha;
+        public static bool gameStarted;
 
 
         void Start()
@@ -119,15 +122,47 @@ namespace Starter.SubsceneSplitscreen {
             }
         }
 
+        private float CameraStartEasing(float t)
+        {
+            return Mathf.Pow(t, 2);  
+        }
+
+        IEnumerator StartCameraRoutine()
+        {
+            yield return new WaitForSeconds(1f);
+            float timer = 0f;
+            while (timer < cameraStartZoomOutTime)
+            {
+                startCameraAlpha = CameraStartEasing(timer / cameraStartZoomOutTime);
+                foreach (StarterSubmanager subscene in subscenes)
+                {
+                    subscene.UpdateStartCameraAlpha();
+                }
+                yield return null;
+                timer += Time.deltaTime;
+            }
+            startCameraAlpha = 1;
+            foreach (StarterSubmanager subscene in subscenes)
+            {
+                subscene.UpdateStartCameraAlpha();
+            }
+        }
+
         IEnumerator StartRoutine()
         {
             ButtonPanel.canUsePanel = false;
             timerFrame.SetActive(false);
             yield return new WaitForSeconds(gameCountdownStartDelay);
+            StartCoroutine(StartCameraRoutine());
             for (int i = 0; i < countdownMessages.Count; i++)
             {
                 string text = countdownMessages[i];
                 yield return StartCoroutine(CountdownEffectRoutine(text));
+            }
+            gameStarted = true;
+            foreach (StarterSubmanager subscene in subscenes)
+            {
+                subscene.UpdatePanel();
             }
             yield return new WaitForSeconds(gameCountdownCompleteDelay);
             ButtonPanel.canUsePanel = true;

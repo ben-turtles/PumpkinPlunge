@@ -14,7 +14,7 @@ namespace Starter.SubsceneSplitscreen {
         [SerializeField] private float panelButtonsPaddingY = 10;
         [SerializeField] private float panelExtraSizeX = 0;
         [SerializeField] private float panelExtraSizeY = 10;
-        [SerializeField] private float panelMoveVelocity = 20;
+        [SerializeField] private float panelMoveVelocity = 15;
         [SerializeField] private float panelMoveTime = 0.25f;
         [SerializeField] private float panelHiddenOffset = -60;
         [SerializeField] private float indicatorMoveVelocity = 1;
@@ -44,8 +44,14 @@ namespace Starter.SubsceneSplitscreen {
             float panelThickness = panel.transform.localScale.z;
             float panelWidth = (buttonSize.x * typeCount) + (panelButtonsPaddingX * (typeCount + 1)) + panelExtraSizeX;
             float panelHeight = buttonSize.z + (panelButtonsPaddingY * 2) + panelExtraSizeY;
-            canvasHeight = GetComponent<RectTransform>().rect.height * 0.5f;
+            Rect canvasRect = GetComponent<RectTransform>().rect;
+            canvasHeight = canvasRect.height;
             panel.transform.localScale = new(panelWidth, panelHeight, panelThickness);
+            Material material = panel.GetComponent<Renderer>().material;
+            float materialFactor = 0.5f;
+            material.mainTextureScale = materialFactor * new Vector2(
+                1, canvasRect.height * panelHeight / (canvasRect.width * panelWidth)
+            );
 
             // Make buttons
             for (int i = 0; i < typeCount; i++)
@@ -56,8 +62,9 @@ namespace Starter.SubsceneSplitscreen {
                 buttons.Add(type, button);
             }
 
-            // Hide panel initially
-            isPanelShown = false;
+            // Toggle panel if game started
+            isPanelShown = StarterGameManager.gameStarted;
+            updatePanelPosition = false;
             SetPanelPosition(GetPanelPosition());
 
             // Move indicator
@@ -117,7 +124,7 @@ namespace Starter.SubsceneSplitscreen {
         {
             return new(
                 panel.transform.localPosition.x,
-                -canvasHeight + (0.5f * (panel.transform.localScale.y - panelExtraSizeY))
+                0.5f * (-canvasHeight + (panel.transform.localScale.y - panelExtraSizeY))
                 + (isPanelShown ? 0 : panelHiddenOffset),
                 panel.transform.localPosition.z
             );
@@ -186,7 +193,15 @@ namespace Starter.SubsceneSplitscreen {
             {
                 return;
             }
-            submanager.TryOpenTrapdoor(selectedTrapdoorType);
+            if (selectedButton.Push())
+            {
+                bool opened = submanager.TryOpenTrapdoor(selectedTrapdoorType);
+                if (!opened)
+                {
+                    // Wrong trapdoor!
+                    selectedButton.MadeWrongChoice();
+                }
+            }
         }
     }
 }

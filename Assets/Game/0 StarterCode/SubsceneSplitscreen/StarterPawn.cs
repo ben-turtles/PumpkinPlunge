@@ -7,15 +7,35 @@ namespace Starter.SubsceneSplitscreen {
 
         [Header("References")]
         public ButtonPanel buttonPanel;
+        public GameObject pumpkin;
 
+        public new Rigidbody rigidbody => pumpkin.GetComponent<Rigidbody>();
+        public new Collider collider => pumpkin.GetComponent<Collider>();
+        private Vector3 pumpkinOffset;
         private float density = 500f;
         private float submerged = 1f;
         private float dragC = 0.5f;
         public bool inWater = false;
 
+        void Start()
+        {
+            pumpkinOffset = pumpkin.transform.localPosition;
+            Debug.Log(pumpkinOffset);
+        }
+
         public void SetMaterial(Material material)
         {
-            GetComponent<MeshRenderer>().material = material;
+            pumpkin.GetComponent<MeshRenderer>().material = material;
+        }
+
+        public void SetFocusPosition(Vector3 focus)
+        {
+            transform.position = focus;
+        }
+
+        public Vector3 GetFocusPosition()
+        {
+            return pumpkin.transform.position;
         }
 
         void FixedUpdate()

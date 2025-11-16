@@ -4,7 +4,7 @@ namespace Starter.SubsceneSplitscreen {
     public class TankWater : MonoBehaviour {
         [SerializeField] private StarterPawn player;
 
-        private Collider playerCollider => player.GetComponent<Collider>();
+        private Collider playerCollider => player.collider;
         public static float density = 2f;
 
         void OnTriggerEnter(Collider other)

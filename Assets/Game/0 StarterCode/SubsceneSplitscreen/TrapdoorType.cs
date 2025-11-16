@@ -9,6 +9,6 @@ namespace Starter.SubsceneSplitscreen {
         public Material material;
         public Sprite symbol;
         public Color symbolColor;
-
+        public float symbolOffset = 0;
     }
 }
