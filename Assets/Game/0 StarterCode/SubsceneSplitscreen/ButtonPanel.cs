@@ -1,5 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace Starter.SubsceneSplitscreen {
@@ -9,14 +9,16 @@ namespace Starter.SubsceneSplitscreen {
         [SerializeField] private GameObject panel;
         [SerializeField] private GameObject indicator;
         [SerializeField] private GameObject buttonPrefab;
-        // Constants
-        private static float INDICATOR_VELOCITY = 1;
-        private static float INDICATOR_MOVE_TIME = 0.5f;
-        private static float INDICATOR_STOP_MARGIN = 0.01f;
-        private static float BUTTON_PANEL_PADDING_X = 10;
-        private static float BUTTON_PANEL_PADDING_Y = 10;
-        private static float BUTTON_PANEL_X_EXTRA = 0;
-        private static float BUTTON_PANEL_Y_EXTRA = 10;
+        [Header("Parameters")]
+        [SerializeField] private float panelButtonsPaddingX = 10;
+        [SerializeField] private float panelButtonsPaddingY = 10;
+        [SerializeField] private float panelExtraSizeX = 0;
+        [SerializeField] private float panelExtraSizeY = 10;
+        [SerializeField] private float panelMoveVelocity = 20;
+        [SerializeField] private float panelMoveTime = 0.25f;
+        [SerializeField] private float panelHiddenOffset = -60;
+        [SerializeField] private float indicatorMoveVelocity = 1;
+        [SerializeField] private float indicatorMoveTime = 0.5f;
 
         public static bool canUsePanel = false;
         private int selectedTypeIndex;
@@ -26,36 +28,37 @@ namespace Starter.SubsceneSplitscreen {
         private bool updateIndicatorPosition;
         private Vector3 targetIndicatorPosition;
         private Vector3 indicatorVelocity;
+        private bool updatePanelPosition;
+        private Vector3 targetPanelPosition;
+        private Vector3 panelVelocity;
+        private float canvasHeight;
+        private Vector3 buttonSize;
+        private bool allowPanelInputs => canUsePanel && isPanelShown;
+        private bool isPanelShown = false;
+
         void Start()
         {
             // Move panel object
             int typeCount = StarterGameManager.instance.trapdoorTypes.Count;
-            Vector3 buttonSize = buttonPrefab.transform.localScale;
+            buttonSize = buttonPrefab.transform.localScale;
             float panelThickness = panel.transform.localScale.z;
-            float panelWidth = (buttonSize.x * typeCount) + (BUTTON_PANEL_PADDING_X * (typeCount + 1));
-            float panelHeight = buttonSize.z + (BUTTON_PANEL_PADDING_Y * 2) + BUTTON_PANEL_Y_EXTRA;
-            float canvasHeight = GetComponent<RectTransform>().rect.height * 0.5f;
-            panel.transform.localScale = new(panelWidth + BUTTON_PANEL_X_EXTRA, panelHeight, panelThickness);
-            panel.transform.localPosition = new(
-                panel.transform.localPosition.x,
-                -canvasHeight + (0.5f * (panelHeight - BUTTON_PANEL_Y_EXTRA)),
-                panel.transform.localPosition.z
-            );
+            float panelWidth = (buttonSize.x * typeCount) + (panelButtonsPaddingX * (typeCount + 1)) + panelExtraSizeX;
+            float panelHeight = buttonSize.z + (panelButtonsPaddingY * 2) + panelExtraSizeY;
+            canvasHeight = GetComponent<RectTransform>().rect.height * 0.5f;
+            panel.transform.localScale = new(panelWidth, panelHeight, panelThickness);
 
             // Make buttons
             for (int i = 0; i < typeCount; i++)
             {
                 TrapdoorType type = StarterGameManager.instance.trapdoorTypes[i];
-                GameObject buttonObject = Instantiate(buttonPrefab, gameObject.transform);
-                buttonObject.transform.localPosition = new(
-                    (0.5f * (buttonSize.x - panelWidth)) + BUTTON_PANEL_PADDING_X + (i * (buttonSize.x + BUTTON_PANEL_PADDING_X)),
-                    (0.5f * BUTTON_PANEL_Y_EXTRA) + panel.transform.localPosition.y,
-                    -((0.5f * panelThickness) + buttonSize.y)
-                );
-                Button button = buttonObject.GetComponent<Button>();
+                Button button = Instantiate(buttonPrefab, gameObject.transform).GetComponent<Button>();
                 button.type = type;
                 buttons.Add(type, button);
             }
+
+            // Hide panel initially
+            isPanelShown = false;
+            SetPanelPosition(GetPanelPosition());
 
             // Move indicator
             indicator.transform.position = GetIndicatorPosition();
@@ -64,21 +67,81 @@ namespace Starter.SubsceneSplitscreen {
 
         void Update()
         {
-            if (updateIndicatorPosition)
+            if (updatePanelPosition)
+            {
+                // Move indicator to target
+                Vector3 startPosition = panel.transform.localPosition;
+                Vector3 newPosition = Vector3.SmoothDamp(
+                    startPosition, targetPanelPosition, ref panelVelocity, panelMoveTime
+                );
+                SetPanelPosition(newPosition);
+                if ((newPosition - startPosition).magnitude <= StarterGameManager.STOP_MARGIN)
+                {
+                    SetPanelPosition(targetPanelPosition);
+                    updatePanelPosition = false;
+                }
+            }
+            else if (updateIndicatorPosition)
             {
                 // Move indicator to target
                 Vector3 startPosition = indicator.transform.position;
                 Vector3 newPosition = Vector3.SmoothDamp(
-                    startPosition, targetIndicatorPosition, ref indicatorVelocity, INDICATOR_MOVE_TIME
+                    startPosition, targetIndicatorPosition, ref indicatorVelocity, indicatorMoveTime
                 );
                 indicator.transform.position = newPosition;
-                if ((newPosition - startPosition).magnitude <= INDICATOR_STOP_MARGIN)
+                if ((newPosition - startPosition).magnitude <= StarterGameManager.STOP_MARGIN)
                 {
                     indicator.transform.position = targetIndicatorPosition;
                     updateIndicatorPosition = false;
                 }
             }
         }
+
+        private void SetPanelPosition(Vector3 newPosition)
+        {
+            panel.transform.localPosition = newPosition;
+            var values = buttons.Values;
+            for (int i = 0; i < values.Count; i++)
+            {
+                Button button = values.ElementAt(i);
+                button.transform.localPosition = new(
+                    (0.5f * (buttonSize.x - panel.transform.localScale.x - panelExtraSizeX)) + panelButtonsPaddingX + (i * (buttonSize.x + panelButtonsPaddingX)),
+                    (0.5f * panelExtraSizeY) + panel.transform.localPosition.y,
+                    -((0.5f * panel.transform.localScale.z) + buttonSize.y)
+                );
+            }
+            indicator.transform.position = GetIndicatorPosition();
+        }
+
+        private Vector3 GetPanelPosition()
+        {
+            return new(
+                panel.transform.localPosition.x,
+                -canvasHeight + (0.5f * (panel.transform.localScale.y - panelExtraSizeY))
+                + (isPanelShown ? 0 : panelHiddenOffset),
+                panel.transform.localPosition.z
+            );
+        }
+
+        void UpdatePanelPosition()
+        {
+            targetPanelPosition = GetPanelPosition();
+            panelVelocity = panelMoveVelocity * (targetPanelPosition - panel.transform.localPosition).normalized;
+            updatePanelPosition = true;
+        }
+
+        public void Show()
+        {
+            isPanelShown = true;
+            UpdatePanelPosition();
+        }
+
+        public void Hide()
+        {
+            isPanelShown = false;
+            UpdatePanelPosition();
+        }
+
         private Vector3 GetIndicatorPosition()
         {
             return selectedButton.transform.position;
@@ -87,13 +150,13 @@ namespace Starter.SubsceneSplitscreen {
         void UpdateIndicator()
         {
             targetIndicatorPosition = GetIndicatorPosition();
-            indicatorVelocity = INDICATOR_VELOCITY * (targetIndicatorPosition - indicator.transform.position).normalized;
+            indicatorVelocity = indicatorMoveVelocity * (targetIndicatorPosition - indicator.transform.position).normalized;
             updateIndicatorPosition = true;
         }
 
         public void MoveLeft()
         {
-            if (!canUsePanel)
+            if (!allowPanelInputs)
             {
                 return;
             }
@@ -106,7 +169,7 @@ namespace Starter.SubsceneSplitscreen {
 
         public void MoveRight()
         {
-            if (!canUsePanel)
+            if (!allowPanelInputs)
             {
                 return;
             }
@@ -119,7 +182,7 @@ namespace Starter.SubsceneSplitscreen {
 
         public void Activate()
         {
-            if (!canUsePanel)
+            if (!allowPanelInputs)
             {
                 return;
             }

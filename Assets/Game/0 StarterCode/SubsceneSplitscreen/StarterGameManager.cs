@@ -16,26 +16,35 @@ namespace Starter.SubsceneSplitscreen {
         [HideInInspector] public List<StarterSubmanager> subscenes = new();
 
         [Header("Game Parameters")]
-        public int countdownTimer = 3;
         public float timer = 30;
+        public float timerWarning = 5;
+        public Color timerWarningColor = Color.red;
         public int trapdoorCreateCount = 30;
         public List<TrapdoorType> trapdoorTypes;
         public List<Color> resultsWeightColors;
+        public List<string> countdownMessages;
+        public Color countdownColorStart = Color.white;
+        public Color countdownColorEnd = new(1, 1, 1, 0);
+        public float countdownStartFontSize = 100;
+        public float countdownEndFontSize = 300;
+        public float countdownMessageDuration = 1.5f;
+        public float countdownColorAlphaOffset = 0.5f;
+        public float gameCountdownStartDelay = 1f;
+        public float gameCountdownCompleteDelay = 0.2f;
+        public float resultsStartDelay = 2f;
+        public float resultsFinishDelay = 6f;
+
         [Header("References")]
         [SerializeField] private TextMeshProUGUI countdownText;
         [SerializeField] private GameObject timerFrame;
         [SerializeField] private TextMeshProUGUI timerText;
 
+        public static float STOP_MARGIN = 0.01f;
+
         public static StarterGameManager instance;
         public static int currentTime;
         private List<TrapdoorType> trapdoorLayout;
 
-        private static Color COUNTDOWN_COLOR_START = Color.white;
-        private static Color COUNTDOWN_COLOR_END =
-            new Color(COUNTDOWN_COLOR_START.r, COUNTDOWN_COLOR_START.g, COUNTDOWN_COLOR_START.b, 0);
-        private static float COUNTDOWN_START_FONT_SIZE = 100;
-        private static float COUNTDOWN_END_FONT_SIZE = 300;
-        private static float COUNTDOWN_TIME = 1f;
 
         void Start()
         {
@@ -86,14 +95,14 @@ namespace Starter.SubsceneSplitscreen {
         IEnumerator CountdownEffectRoutine(string text, bool hideOnFinish = false)
         {
             float timer = 0f;
-            float alpha = 0;
             countdownText.text = text;
             countdownText.ForceMeshUpdate();
-            while (alpha < 1)
+            while (timer < countdownMessageDuration)
             {
-                alpha = timer / COUNTDOWN_TIME;
-                countdownText.fontSize = Mathf.Lerp(COUNTDOWN_START_FONT_SIZE, COUNTDOWN_END_FONT_SIZE, alpha);
-                countdownText.color = Color.Lerp(COUNTDOWN_COLOR_START, COUNTDOWN_COLOR_END, alpha);
+                float fontAlpha = timer / countdownMessageDuration;
+                float colorAlpha = (fontAlpha - countdownColorAlphaOffset) / (1 - countdownColorAlphaOffset);
+                countdownText.fontSize = Mathf.Lerp(countdownStartFontSize, countdownEndFontSize, fontAlpha);
+                countdownText.color = Color.Lerp(countdownColorStart, countdownColorEnd, colorAlpha);
                 timer += Time.deltaTime;
                 yield return null;
             }
@@ -103,8 +112,8 @@ namespace Starter.SubsceneSplitscreen {
             }
             else
             {
-                countdownText.fontSize = COUNTDOWN_END_FONT_SIZE;
-                countdownText.color = COUNTDOWN_COLOR_END;
+                countdownText.fontSize = countdownEndFontSize;
+                countdownText.color = countdownColorEnd;
                 countdownText.text = text;
                 countdownText.ForceMeshUpdate();
             }
@@ -114,15 +123,13 @@ namespace Starter.SubsceneSplitscreen {
         {
             ButtonPanel.canUsePanel = false;
             timerFrame.SetActive(false);
-            yield return new WaitForSeconds(0.5f);
-            // for (int i = countdownTimer; i > 0; i--)
-            // {
-            //     string text = i.ToString();
-            //     yield return StartCoroutine(CountdownEffectRoutine(text));
-            // }
-            StartCoroutine(CountdownEffectRoutine("PLUNGE!", true));
-            yield return new WaitForSeconds(0.25f);
-
+            yield return new WaitForSeconds(gameCountdownStartDelay);
+            for (int i = 0; i < countdownMessages.Count; i++)
+            {
+                string text = countdownMessages[i];
+                yield return StartCoroutine(CountdownEffectRoutine(text));
+            }
+            yield return new WaitForSeconds(gameCountdownCompleteDelay);
             ButtonPanel.canUsePanel = true;
             StartCoroutine(TimerRoutine());
         }
@@ -130,6 +137,7 @@ namespace Starter.SubsceneSplitscreen {
         IEnumerator TimerRoutine()
         {
             float timeLeft = timer;
+            Image timerImage = timerFrame.GetComponent<Image>();
             timerFrame.SetActive(true);
             while (timeLeft > 0)
             {
@@ -137,6 +145,10 @@ namespace Starter.SubsceneSplitscreen {
                 timerText.text = currentTime.ToString();
                 yield return new WaitForSeconds(1f);
                 timeLeft -= 1f;
+                if (timeLeft <= timerWarning && timerImage.color != timerWarningColor)
+                {
+                    timerImage.color = timerWarningColor;
+                }
             }
             timerText.text = "0";
             StartCoroutine(EndRoutine());
@@ -146,7 +158,11 @@ namespace Starter.SubsceneSplitscreen {
         {
             ButtonPanel.canUsePanel = false;
             timerFrame.SetActive(false);
-            yield return new WaitForSeconds(2f);
+            foreach (StarterSubmanager subscene in subscenes) {
+                subscene.TriggerEnd();
+            }
+            StartCoroutine(CountdownEffectRoutine("TIME!", true));
+            yield return new WaitForSeconds(resultsFinishDelay);
 
             // Get scores
             List<int> scores = new();
