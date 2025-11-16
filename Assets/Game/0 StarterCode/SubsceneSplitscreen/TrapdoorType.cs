@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Starter.SubsceneSplitscreen {
+namespace Starter.PumpkinPlunge {
     [CreateAssetMenu(fileName = "TrapdoorType", menuName = "Starter/TrapdoorType")]
     public class TrapdoorType : ScriptableObject {
         [Header("Properties")]

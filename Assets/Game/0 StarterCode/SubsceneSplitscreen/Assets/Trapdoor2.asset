@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: af35575c02c212142b50872792894eb2, type: 2}
   symbol: {fileID: 21300000, guid: a3ec3cb8860299141ad9a86662e7a75b, type: 3}
-  symbolColor: {r: 0.62352943, g: 0.62352943, b: 0.62352943, a: 1}
+  symbolColor: {r: 0.7056604, g: 0.7056604, b: 0.7056604, a: 1}
   symbolOffset: 0.05

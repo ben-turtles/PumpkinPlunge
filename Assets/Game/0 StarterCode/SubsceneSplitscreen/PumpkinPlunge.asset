@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b65074faa8a836848ae4203c738fad3b, type: 3}
+  m_Name: PumpkinPlunge
+  m_EditorClassIdentifier: 
+  minigameName: Pumpkin Plunge
+  thumbnail: {fileID: 0}
+  scene:
+    m_SceneAsset: {fileID: 102900000, guid: 3f63c092039f56b418f2ef136572a933, type: 3}
+    m_SceneName: SubsceneStarter
+  minimumPlayers: 1
+  description: Plunge your pumpkin to the bottom as fast as possible! Select the
+    correct button to open the trapdoors as they appear. The fastest to reach the
+    bottom wins!
+  controls: '<sprite name="XBOX_A"> Drop
+
+    <sprite name="XBOX_LB">/<sprite name="XBOX_LT">
+    Select Left
+
+    <sprite name="XBOX_RB">/<sprite name="XBOX_RT"> Select Right'
+  credits: Created by Ben Reinherz
+  attributions: 'Pumpkin Model: https://assetstore.unity.com/packages/3d/props/free-halloween-pumpkins-3d-models-235356
+
+    Materials
+    from Unity Standard Assets: https://github.com/jamschutz/Unity-Standard-Assets'

@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Starter.SubsceneSplitscreen {
+namespace Starter.PumpkinPlunge {
     public class ButtonPanel : MonoBehaviour {
         [Header("References")]
-        public StarterSubmanager submanager;
+        public PumpkinPlungeSubmanager submanager;
         [SerializeField] private GameObject panel;
         [SerializeField] private GameObject indicator;
         [SerializeField] private GameObject buttonPrefab;
@@ -19,10 +19,11 @@ namespace Starter.SubsceneSplitscreen {
         [SerializeField] private float panelHiddenOffset = -60;
         [SerializeField] private float indicatorMoveVelocity = 1;
         [SerializeField] private float indicatorMoveTime = 0.5f;
+        [SerializeField] private Vector3 panelOffset = new(0, 15, -7.5f);
 
         public static bool canUsePanel = false;
         private int selectedTypeIndex;
-        private TrapdoorType selectedTrapdoorType => StarterGameManager.instance.trapdoorTypes[selectedTypeIndex];
+        private TrapdoorType selectedTrapdoorType => PumpkinPlungeManager.instance.trapdoorTypes[selectedTypeIndex];
         private Button selectedButton => buttons[selectedTrapdoorType];
         private Dictionary<TrapdoorType, Button> buttons = new();
         private bool updateIndicatorPosition;
@@ -35,11 +36,12 @@ namespace Starter.SubsceneSplitscreen {
         private Vector3 buttonSize;
         private bool allowPanelInputs => canUsePanel && isPanelShown;
         private bool isPanelShown = false;
+        private Quaternion buttonRotate;
 
         void Start()
         {
             // Move panel object
-            int typeCount = StarterGameManager.instance.trapdoorTypes.Count;
+            int typeCount = PumpkinPlungeManager.instance.trapdoorTypes.Count;
             buttonSize = buttonPrefab.transform.localScale;
             float panelThickness = panel.transform.localScale.z;
             float panelWidth = (buttonSize.x * typeCount) + (panelButtonsPaddingX * (typeCount + 1)) + panelExtraSizeX;
@@ -52,18 +54,24 @@ namespace Starter.SubsceneSplitscreen {
             material.mainTextureScale = materialFactor * new Vector2(
                 1, canvasRect.height * panelHeight / (canvasRect.width * panelWidth)
             );
+            panel.transform.rotation *= Quaternion.Euler(15, 0, 0);
 
             // Make buttons
             for (int i = 0; i < typeCount; i++)
             {
-                TrapdoorType type = StarterGameManager.instance.trapdoorTypes[i];
+                TrapdoorType type = PumpkinPlungeManager.instance.trapdoorTypes[i];
                 Button button = Instantiate(buttonPrefab, gameObject.transform).GetComponent<Button>();
+                if (i == 0)
+                {
+                    buttonRotate = button.transform.rotation;
+                }
+                // button.defRotate = button.transform.rotation;
                 button.type = type;
                 buttons.Add(type, button);
             }
 
             // Toggle panel if game started
-            isPanelShown = StarterGameManager.gameStarted;
+            isPanelShown = PumpkinPlungeManager.gameStarted;
             updatePanelPosition = false;
             SetPanelPosition(GetPanelPosition());
 
@@ -82,7 +90,7 @@ namespace Starter.SubsceneSplitscreen {
                     startPosition, targetPanelPosition, ref panelVelocity, panelMoveTime
                 );
                 SetPanelPosition(newPosition);
-                if ((newPosition - startPosition).magnitude <= StarterGameManager.STOP_MARGIN)
+                if ((newPosition - startPosition).magnitude <= PumpkinPlungeManager.STOP_MARGIN)
                 {
                     SetPanelPosition(targetPanelPosition);
                     updatePanelPosition = false;
@@ -96,7 +104,7 @@ namespace Starter.SubsceneSplitscreen {
                     startPosition, targetIndicatorPosition, ref indicatorVelocity, indicatorMoveTime
                 );
                 indicator.transform.position = newPosition;
-                if ((newPosition - startPosition).magnitude <= StarterGameManager.STOP_MARGIN)
+                if ((newPosition - startPosition).magnitude <= PumpkinPlungeManager.STOP_MARGIN)
                 {
                     indicator.transform.position = targetIndicatorPosition;
                     updateIndicatorPosition = false;
@@ -111,23 +119,27 @@ namespace Starter.SubsceneSplitscreen {
             for (int i = 0; i < values.Count; i++)
             {
                 Button button = values.ElementAt(i);
-                button.transform.localPosition = new(
+                button.transform.position = panel.transform.position;
+                button.transform.localPosition += new Vector3(
                     (0.5f * (buttonSize.x - panel.transform.localScale.x - panelExtraSizeX)) + panelButtonsPaddingX + (i * (buttonSize.x + panelButtonsPaddingX)),
-                    (0.5f * panelExtraSizeY) + panel.transform.localPosition.y,
+                    0,
                     -((0.5f * panel.transform.localScale.z) + buttonSize.y)
                 );
+                button.transform.localPosition += panel.transform.up * (0.5f * panelExtraSizeY);
+                button.transform.rotation = buttonRotate * panel.transform.rotation;
             }
             indicator.transform.position = GetIndicatorPosition();
+            indicator.transform.rotation = selectedButton.transform.rotation;
         }
 
         private Vector3 GetPanelPosition()
         {
-            return new(
+            return new Vector3(
                 panel.transform.localPosition.x,
                 0.5f * (-canvasHeight + (panel.transform.localScale.y - panelExtraSizeY))
                 + (isPanelShown ? 0 : panelHiddenOffset),
                 panel.transform.localPosition.z
-            );
+            ) + panelOffset;
         }
 
         void UpdatePanelPosition()
@@ -180,7 +192,7 @@ namespace Starter.SubsceneSplitscreen {
             {
                 return;
             }
-            if (selectedTypeIndex < StarterGameManager.instance.trapdoorTypes.Count - 1)
+            if (selectedTypeIndex < PumpkinPlungeManager.instance.trapdoorTypes.Count - 1)
             {
                 selectedTypeIndex += 1;
             }
@@ -200,6 +212,11 @@ namespace Starter.SubsceneSplitscreen {
                 {
                     // Wrong trapdoor!
                     selectedButton.MadeWrongChoice();
+                }
+                else
+                {
+                    // Right trapdoor!
+                    selectedButton.MadeRightChoice();
                 }
             }
         }

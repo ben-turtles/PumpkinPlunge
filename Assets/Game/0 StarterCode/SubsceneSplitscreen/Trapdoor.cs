@@ -2,7 +2,7 @@ using System.Collections;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace Starter.SubsceneSplitscreen {
+namespace Starter.PumpkinPlunge {
     public class Trapdoor : MonoBehaviour {
         [Header("Properties")]
         public TrapdoorType type;

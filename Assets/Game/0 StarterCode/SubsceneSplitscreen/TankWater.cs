@@ -1,8 +1,8 @@
 using UnityEngine;
 
-namespace Starter.SubsceneSplitscreen {
+namespace Starter.PumpkinPlunge {
     public class TankWater : MonoBehaviour {
-        [SerializeField] private StarterPawn player;
+        [SerializeField] private PumpkinPawn player;
 
         private Collider playerCollider => player.collider;
         public static float density = 2f;

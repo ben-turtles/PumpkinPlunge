@@ -1,17 +1,23 @@
+using System;
 using System.Collections;
-using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.TextCore.LowLevel;
 
-namespace Starter.SubsceneSplitscreen {
+namespace Starter.PumpkinPlunge {
     public class Button : MonoBehaviour {
         [Header("References")]
         public GameObject indicatorSymbol;
+        [SerializeField] private GameObject responsePrefab;
         [Header("Properties")]
         public TrapdoorType type;
         private float PUSH_PERCENT = 0.85f;
         private float PUSH_MAX_TIME = 0.2f;
-        private float WRONG_COOLDOWN = 2f;
+        private float WRONG_COOLDOWN = 1.2f;
+        private float responseShowDuration = 1.5f;
+        private float responseRiseStartPosition = 1f;
+        private float responseRiseEndPosition = 2f;
+        private float responseColorAlphaOffset = 0.5f;
+        private Color responseColorStart = Color.white;
+        private Color responseColorEnd = new(1, 1, 1, 0);
 
         private static bool buttonPushed = false;
         private static bool wrongCooldown = false;
@@ -28,6 +34,44 @@ namespace Starter.SubsceneSplitscreen {
             buttonPushed = false;
         }
 
+        private float ButtonResponseEasing(float t)
+        {
+            return Mathf.Sin((float)(t * Math.PI * 0.5f));
+        }
+
+        IEnumerator ShowButtonResponseRoutine(bool isSuccess)
+        {
+            GameObject responseObject = Instantiate(responsePrefab, transform.parent);
+            ButtonResponse response = responseObject.GetComponent<ButtonResponse>();
+            GameObject symbol = isSuccess ? response.successSymbol : response.failureSymbol;
+            symbol.SetActive(true);
+            SpriteRenderer spriteRenderer = symbol.GetComponent<SpriteRenderer>();
+            response.transform.position = transform.position;
+            float timer = 0f;
+            while (timer < responseShowDuration)
+            {
+                float riseAlpha = ButtonResponseEasing(timer / responseShowDuration);
+                float colorAlpha = (riseAlpha - responseColorAlphaOffset) / (1 - responseColorAlphaOffset);
+                symbol.transform.localPosition = new Vector3(
+                    0, 0, Mathf.Lerp(responseRiseStartPosition, responseRiseEndPosition, riseAlpha)
+                );
+                spriteRenderer.color = Color.Lerp(responseColorStart, responseColorEnd, colorAlpha);
+                yield return null;
+                timer += Time.deltaTime;
+            }
+            Destroy(responseObject);
+        }
+
+        public void MadeRightChoice()
+        {
+            StartCoroutine(RightChoiceRoutine());
+        }
+
+        IEnumerator RightChoiceRoutine()
+        {
+            yield return StartCoroutine(ShowButtonResponseRoutine(true));
+        }
+
         public void MadeWrongChoice()
         {
             StartCoroutine(WrongChoiceRoutine());
@@ -36,6 +80,7 @@ namespace Starter.SubsceneSplitscreen {
         IEnumerator WrongChoiceRoutine()
         {
             wrongCooldown = true;
+            StartCoroutine(ShowButtonResponseRoutine(false));
             yield return new WaitForSeconds(WRONG_COOLDOWN);
             wrongCooldown = false;
         }
