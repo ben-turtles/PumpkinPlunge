@@ -16,11 +16,11 @@ MonoBehaviour:
   thumbnail: {fileID: 0}
   scene:
     m_SceneAsset: {fileID: 102900000, guid: 3f63c092039f56b418f2ef136572a933, type: 3}
-    m_SceneName: SubsceneStarter
+    m_SceneName: PumpkinPlunge
   minimumPlayers: 1
   description: Plunge your pumpkin to the bottom as fast as possible! Select the
-    correct button to open the trapdoors as they appear. The fastest to reach the
-    bottom wins!
+    correct button to open the trapdoors and drop your pumpkin down. The fastest
+    to reach the bottom or the furthest down wins!
   controls: '<sprite name="XBOX_A"> Drop
 
     <sprite name="XBOX_LB">/<sprite name="XBOX_LT">

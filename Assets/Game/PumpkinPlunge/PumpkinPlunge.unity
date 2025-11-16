@@ -6292,6 +6292,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5342337122602651996, guid: 39c3675d74f52e14e983452040eb9292, type: 3}
+      propertyPath: debugMinigame
+      value: 
+      objectReference: {fileID: 11400000, guid: 5b15acf0c54874d4588be00f64cc1d4a, type: 2}
     - target: {fileID: 6125866497244834600, guid: 39c3675d74f52e14e983452040eb9292, type: 3}
       propertyPath: m_Name
       value: MinigameManager
@@ -20443,10 +20447,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   subscenes: []
-  timer: 30
+  timer: 40
   timerWarning: 5
   timerWarningColor: {r: 1, g: 0.16325504, b: 0.1415093, a: 1}
-  trapdoorCreateCount: 30
+  trapdoorCreateCount: 40
   trapdoorTypes:
   - {fileID: 11400000, guid: fdcced520288c2345bbc1d0d7ad0b9c2, type: 2}
   - {fileID: 11400000, guid: b78aea03f494f294984b42c7eb8c6764, type: 2}
@@ -20754,7 +20758,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: -10, z: 0}
-  m_LocalScale: {x: 100000, y: 0.5, z: 100000}
+  m_LocalScale: {x: 4000, y: 0.5, z: 4000}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}

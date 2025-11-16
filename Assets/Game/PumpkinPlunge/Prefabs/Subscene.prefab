@@ -511,10 +511,10 @@ MonoBehaviour:
   panelButtonsPaddingY: 5
   panelExtraSizeX: 0
   panelExtraSizeY: 20
-  panelMoveVelocity: 20
-  panelMoveTime: 0.25
+  panelMoveVelocity: 30
+  panelMoveTime: 0.15
   panelHiddenOffset: -60
-  indicatorMoveVelocity: 1
+  indicatorMoveVelocity: 0.5
   indicatorMoveTime: 0.5
   panelOffset: {x: 0, y: 15, z: -7.5}
 --- !u!223 &449638673342660788
